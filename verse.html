@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<meta http-equiv='Content-Type' content='text/html; encoding=utf-8'>
+<title>Die Losungen der Herrnhuter Brüdergemeine: {{ verse.date }}</title>
+<style type='text/css'><!--
+html, body {
+    background-color: #006;
+    color: #fc0;
+    margin: 10ex 7%;
+}
+
+#losung_detail {
+    font-size: 200%;
+}
+
+a {
+    color: #fc0;
+}
+
+.sonntag {
+    font-weight: bold;
+}
+
+.text {
+    text-align: justify;
+    margin-bottom: 0;
+}
+
+.vers {
+    text-align: right;
+    font-size: 75%;
+    font-style: italic;
+    margin-top: 0;
+}
+
+.copyright {
+    float: right;
+}
+--></style>
+</head>
+
+<body>
+<div id='losung_detail'>
+<h2>
+<a href='/{{ verse.yesterday.year }}/{{ verse.yesterday.month }}/{{ verse.yesterday.day }}' title='vonangehender Tag'>«</a>
+{{ verse.date }}
+{% if verse.tomorrow %}<a href='/{{ verse.tomorrow.year }}/{{ verse.tomorrow.month }}/{{ verse.tomorrow.day }}' title='nächster Tag'>»</a>
+{% endif %}</h2>
+
+{% if verse.sunday_name %}<p class='sonntag'>{{ verse.sunday_name }}</p>
+
+{% endif %}<p class='text'>{{ verse.verse_text }}</p>
+<p class='vers'>{{ verse.verse_verse }}</p>
+
+<p class='text'>{{ verse.teach_text }}</p>
+<p class='vers'>{{ verse.teach_verse }}</p>
+</div>
+
+<p class='copyright'>©
+<a href="http://www.ebu.de/" title="Evang. Brüder-Unität Bad Boll/Friedrich Reinhardt Verlag">EBU</a>,
+<a href="http://www.losungen.de/">losungen.de</a>
+</p>
+
+</body>
+</html>
