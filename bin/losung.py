@@ -20,11 +20,11 @@ root = ElementTree.parse(fn[0]).getroot()
 for d in root:
     date = d.findtext('Datum')
     if date is not None and date.startswith(today):
-	sonntag = d.findtext('Sonntag')
-	sonntag = f.p(sonntag, class_='dbvSunday') if sonntag else ''
-	los_t, los_v = textvers(d.findtext('Losungstext'), d.findtext('Losungsvers'))
-	lehr_t, lehr_v = textvers(d.findtext('Lehrtext'), d.findtext('Lehrtextvers'))
-	break
+        sonntag = d.findtext('Sonntag')
+        sonntag = f.p(sonntag, class_='dbvSunday') if sonntag else ''
+        los_t, los_v = textvers(d.findtext('Losungstext'), d.findtext('Losungsvers'))
+        lehr_t, lehr_v = textvers(d.findtext('Lehrtext'), d.findtext('Lehrtextvers'))
+        break
 else:
     sys.exit(1)
 
@@ -33,8 +33,8 @@ print unicode(f.fragment(
     los_t, '\n', los_v, '\n',
     lehr_t, '\n', lehr_v, '\n',
     f.p(class_="dbvCopyright")[u'© ',
-	f.a("EBU", href="http://www.ebu.de/", title=u"Evang. Brüder-Unität Bad Boll/Friedrich Reinhardt Verlag"),
-	',\n',
-	f.a("losungen.de", href="http://www.losungen.de/")
+        f.a("EBU", href="http://www.ebu.de/", title=u"Evang. Brüder-Unität Bad Boll/Friedrich Reinhardt Verlag"),
+        ',\n',
+        f.a("losungen.de", href="http://www.losungen.de/")
     ]
 )).encode('utf-8')
