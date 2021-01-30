@@ -73,13 +73,26 @@ def verse(y, m, d):
     return render(date)
 
 
-def render(date):
+cache = {}
+
+def load_year(year):
+    global cache
+    try:
+        return cache[year]
+    except KeyError:
+        pass
     try:
         # use a glob because the file name changed from "losung_free_YYYY.xml"
         # to "losungen free YYYY.xml" in 2011
-        root = ET.parse(glob.glob(f'lib/losung*{date.year}.xml')[0])
+        root = ET.parse(glob.glob(f'lib/losung*{year}.xml')[0])
     except (IndexError, IOError):
         abort(404)
+    cache[year] = root
+    return root
+
+
+def render(date):
+    root = load_year(date.year)
     verse = root.findall(f'./Losungen[Datum="{date.isoformat()}T00:00:00"]')
     if not verse:
         abort(404)
