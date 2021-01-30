@@ -15,97 +15,76 @@
 # limitations under the License.
 #
 
-import re, datetime, os
-import wsgiref.handlers
-from xml.etree import cElementTree as ElementTree
+import datetime
+import glob
+import re
+from xml.etree import ElementTree as ET
 
-from google.appengine.ext import webapp
-from google.appengine.ext.webapp import template
-from google.appengine.ext import db
-from django.utils.html import escape
+from flask import (
+    Flask,
+    Markup,
+    abort,
+    render_template,
+)
 
-root_path = os.path.dirname(__file__)
+app = Flask(__name__)
+
 oneday = datetime.timedelta(days=1)
-
-
-class Verse(db.Model):
-    date = db.DateProperty(required=True)
-    year = db.IntegerProperty(required=True)
-    verse_text = db.TextProperty(required=True)
-    verse_verse = db.StringProperty(required=True)
-    teach_text = db.TextProperty(required=True)
-    teach_verse = db.StringProperty(required=True)
-    sunday_name = db.StringProperty()
-
-    def prepare(self):
-        self.yesterday = self.date - oneday
-        if self.date < datetime.date.today():
-            self.tomorrow = self.date + oneday
-        return self
-
-
-class DateHandler(webapp.RequestHandler):
-
-    def get(self, y, m, d):
-        self.render(datetime.date(int(y), int(m), int(d)))
-
-    def render(self, date):
-        verses = Verse.all().filter('date =', date).fetch(1)
-        if len(verses) != 1:
-            self.error(404)
-            self.response.out.write('Not found')
-            return
-        self.response.out.write(template.render(
-            os.path.join(root_path, 'verse.html'), {'verse': verses[0].prepare()}
-        ))
-
-
-class TodayHandler(DateHandler):
-
-    def get(self):
-        self.render(datetime.date.today())
-
-
-class LoadHandler(webapp.RequestHandler):
-    file_template = os.path.join(root_path, 'lib', 'losung_free_%s.xml')
-
-    def get(self, year):
-        old = Verse.all().filter('year =', year)
-        for verse in old:
-            verse.delete()
-        self.response.out.write('<code>%d old verses deleted.</code><br>\n' % old.count())
-        fn = self.file_template % year
-        verses = ElementTree.parse(fn)
-        for e in verses.findall('Losungen'):
-            d = e.findtext('Datum')     # assumes ISO format
-            y = int(d[:4])
-            Verse(
-                date = datetime.date(y, int(d[5:7]), int(d[8:10])), year = y,
-                verse_text = _textverse(e.findtext('Losungstext')),
-                verse_verse = e.findtext('Losungsvers'),
-                teach_text = _textverse(e.findtext('Lehrtext')),
-                teach_verse = e.findtext('Lehrtextvers'),
-                sunday_name = e.findtext('Sonntag')
-            ).put()
-        self.response.out.write('<code>File %s loaded.</code>' % fn)
-
 speak_re = re.compile(r'/(.+?:)/')
 strong_re = re.compile(r'#(.+?)#')
 
-def _textverse(t):
-    t = escape(t)
+
+def htmlize(t):
     t = speak_re.sub(r'<em>\1</em>', t)
     t = strong_re.sub(r'<strong>\1</strong>', t)
-    return t
+    return Markup(t)
 
 
-def main():
-    application = webapp.WSGIApplication([
-        ('/', TodayHandler),
-        (r'/(\d{4})[/-](\d\d?)[/-](\d\d?)$', DateHandler),
-        (r'/load/(\d{4})', LoadHandler),
-    ], debug=True)
-    wsgiref.handlers.CGIHandler().run(application)
+def url_for_date(date):
+    return f'/{date.year}-{date.month:02}-{date.day:02}'
+
+
+class Verse:
+    def __init__(self, node):
+        self.date = datetime.date.fromisoformat(node.findtext('Datum', '')[:10])
+        self.weekday = node.findtext('Wtag')
+        self.sunday_name = node.findtext('Sonntag')
+        self.verse_text = htmlize(node.findtext('Losungstext'))
+        self.verse_verse = node.findtext('Losungsvers')
+        self.teach_text = htmlize(node.findtext('Lehrtext'))
+        self.teach_verse = node.findtext('Lehrtextvers')
+
+        self.yesterday = url_for_date(self.date - oneday)
+        if self.date < datetime.date.today():
+            self.tomorrow = url_for_date(self.date + oneday)
+
+
+@app.route('/')
+def today():
+    return render(datetime.date.today())
+
+
+@app.route('/<int:y>-<int:m>-<int:d>')
+def verse(y, m, d):
+    try:
+        date = datetime.date(y, m, d)
+    except ValueError:
+        abort(404)
+    return render(date)
+
+
+def render(date):
+    try:
+        # use a glob because the file name changed from "losung_free_YYYY.xml"
+        # to "losungen free YYYY.xml" in 2011
+        root = ET.parse(glob.glob(f'lib/losung*{date.year}.xml')[0])
+    except (IndexError, IOError):
+        abort(404)
+    verse = root.findall(f'./Losungen[Datum="{date.isoformat()}T00:00:00"]')
+    if not verse:
+        abort(404)
+    return render_template('verse.html', verse=Verse(verse[0]))
+
 
 if __name__ == '__main__':
-    main()
+    app.run()

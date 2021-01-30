@@ -15,6 +15,9 @@ html, body {
     font-size: 200%;
 }
 
+h2 { width: 100%; }
+h2 > a:nth-of-type(2) { float: right; }
+
 a {
     color: #fc0;
 }
@@ -44,9 +47,9 @@ a {
 <body>
 <div id='losung_detail'>
 <h2>
-<a href='/{{ verse.yesterday.year }}/{{ verse.yesterday.month }}/{{ verse.yesterday.day }}' title='vonangehender Tag'>«</a>
-{{ verse.date }}
-{% if verse.tomorrow %}<a href='/{{ verse.tomorrow.year }}/{{ verse.tomorrow.month }}/{{ verse.tomorrow.day }}' title='nächster Tag'>»</a>
+<a href='{{ verse.yesterday }}' title='vonangehender Tag'>«</a>
+{{ verse.weekday }}, {{ verse.date }}
+{% if verse.tomorrow %}<a href='{{ verse.tomorrow }}' title='nächster Tag'>»</a>
 {% endif %}</h2>
 
 {% if verse.sunday_name %}<p class='sonntag'>{{ verse.sunday_name }}</p>
