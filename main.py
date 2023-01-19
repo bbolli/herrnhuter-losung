@@ -69,7 +69,7 @@ def verse(y, m, d):
     try:
         date = datetime.date(y, m, d)
     except ValueError:
-        abort(404)
+        abort(404, "Ungültiges Datum.")
     return render(date)
 
 
@@ -86,7 +86,7 @@ def load_year(year):
         # to "losungen free YYYY.xml" in 2011
         root = ET.parse(glob.glob(f'lib/losung*{year}.xml')[0])
     except (IndexError, IOError):
-        abort(404)
+        abort(404, f"Losungen für {year} nicht vorhanden.")
     cache[year] = root
     return root
 
@@ -95,7 +95,7 @@ def render(date):
     root = load_year(date.year)
     verse = root.findall(f'./Losungen[Datum="{date.isoformat()}T00:00:00"]')
     if not verse:
-        abort(404)
+        abort(404, f"Vers für {date} nicht gefunden.")
     return render_template('verse.html', verse=Verse(verse[0]))
 
 
