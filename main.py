@@ -73,7 +73,13 @@ def verse(y, m, d):
     return render(date)
 
 
+@app.errorhandler(404)
+def not_found(e):
+    return render_template('404.html', error=e), 404
+
+
 cache = {}
+
 
 def load_year(year):
     global cache
