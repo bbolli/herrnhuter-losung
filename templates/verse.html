@@ -27,10 +27,6 @@ a {
     color: #fc0;
 }
 
-.sonntag {
-    font-weight: bold;
-}
-
 .text {
     text-align: justify;
     margin-bottom: 0;
@@ -58,7 +54,7 @@ a {
 {% if verse.tomorrow %}<a href='{{ verse.tomorrow }}' title='nächster Tag'>»</a>
 {% endif %}</h2>
 
-{% if verse.sunday_name %}<p class='sonntag'>{{ verse.sunday_name }}</p>
+{% if verse.sunday_name %}<h3>{{ verse.sunday_name }}</h3>
 
 {% endif %}<p class='text'>{{ verse.verse_text }}</p>
 <p class='vers'>{{ verse.verse_verse }}</p>
