@@ -11,6 +11,11 @@ html, body {
     margin: 10ex 7%;
 }
 
+#wrapper {
+    margin: 0 auto;
+    max-width: 60em;
+}
+
 #losung_detail {
     font-size: 200%;
 }
@@ -45,6 +50,7 @@ a {
 </head>
 
 <body>
+<div id='wrapper'>
 <div id='losung_detail'>
 <h2>
 <a href='{{ verse.yesterday }}' title='vonangehender Tag'>«</a>
@@ -65,6 +71,7 @@ a {
 <a href="http://www.ebu.de/" title="Evang. Brüder-Unität Bad Boll/Friedrich Reinhardt Verlag">EBU</a>,
 <a href="http://www.losungen.de/">losungen.de</a>
 </p>
+</div>
 
 </body>
 </html>
