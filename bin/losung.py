@@ -1,19 +1,27 @@
-#!/usr/bin/python
-# encoding: utf-8
+#!/usr/bin/python3
 
-import sys, time, re, glob, xmlgen
+import glob
+import re
+import sys
+import time
+import xmlbuilder
 from xml.etree import cElementTree as ElementTree
+from xml.sax.saxutils import escape
 
 today = time.strftime('%Y-%m-%d') if len(sys.argv) == 1 else sys.argv[1]
 speak_re = re.compile(r'/(.+?:)/')
 emph_re = re.compile(r'#(.+?)#')
 
-f = xmlgen.Factory()
+f = xmlbuilder.Builder(version=None, stream=sys.stdout)
 
-def textvers(t, v, href=''):
-    t = speak_re.sub(r'<em>\1</em>', t)
-    t = emph_re.sub(r'<strong>\1</strong>', t)
-    return f.p(t, class_="dbvText"), f.p(v, class_="dbvVers")
+
+def textvers(t):
+    return xmlbuilder.Safe(escape(t)).apply(
+        lambda t: speak_re.sub(r'<em>\1</em>', t)
+    ).apply(
+        lambda t: emph_re.sub(r'<strong>\1</strong>', t)
+    )
+
 
 fn = glob.glob('/home/bb/lib/los*%s*.xml' % today[:4])
 root = ElementTree.parse(fn[0]).getroot()
@@ -21,20 +29,24 @@ for d in root:
     date = d.findtext('Datum')
     if date is not None and date.startswith(today):
         sonntag = d.findtext('Sonntag')
-        sonntag = f.p(sonntag, class_='dbvSunday') if sonntag else ''
-        los_t, los_v = textvers(d.findtext('Losungstext'), d.findtext('Losungsvers'))
-        lehr_t, lehr_v = textvers(d.findtext('Lehrtext'), d.findtext('Lehrtextvers'))
+        los_t = textvers(d.findtext('Losungstext'))
+        los_v = d.findtext('Losungsvers')
+        lehr_t = textvers(d.findtext('Lehrtext'))
+        lehr_v = d.findtext('Lehrtextvers')
         break
 else:
     sys.exit(1)
 
-print unicode(f.fragment(
-    f.h3('Losung'), '\n', sonntag,
-    los_t, '\n', los_v, '\n',
-    lehr_t, '\n', lehr_v, '\n',
-    f.p(class_="dbvCopyright")[u'© ',
-        f.a("EBU", href="http://www.ebu.de/", title=u"Evang. Brüder-Unität Bad Boll/Friedrich Reinhardt Verlag"),
-        ',\n',
-        f.a("losungen.de", href="http://www.losungen.de/")
-    ]
-)).encode('utf-8')
+f.h3('Losung')
+if sonntag:
+    f.h2(sonntag, class_='dbvSunday')
+f.p(los_t, class_='dbvText')
+f.p(los_v, class_='dbvVers')
+f.p(lehr_t, class_='dbvText')
+f.p(lehr_v, class_='dbvVers')
+with f.p(class_="dbvCopyright"):
+    f['©']
+    f.a("EBU", href="https://www.ebu.de/",
+        title="Evang. Brüder-Unität Bad Boll/Friedrich Reinhardt Verlag"),
+    f[',']
+    f.a("losungen.de", href="https://www.losungen.de/")
