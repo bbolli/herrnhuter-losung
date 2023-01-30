@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+# usage: losung.py [--news] [yyyy-mm-dd]
+
 import glob
 import re
 import sys
@@ -8,6 +10,9 @@ import xmlbuilder
 from xml.etree import cElementTree as ElementTree
 from xml.sax.saxutils import escape
 
+news = len(sys.argv) > 1 and sys.argv[1] == '--news'
+if news:
+    del sys.argv[1]
 today = time.strftime('%Y-%m-%d') if len(sys.argv) == 1 else sys.argv[1]
 speak_re = re.compile(r'/(.+?:)/')
 emph_re = re.compile(r'#(.+?)#')
@@ -37,16 +42,22 @@ for d in root:
 else:
     sys.exit(1)
 
-f.h3('Losung')
-if sonntag:
-    f.h2(sonntag, class_='dbvSunday')
+if news:
+    print('Losung\nmeta-source: losung\n')
+    if sonntag:
+        f.h4(sonntag, class_='dbvSunday')
+else:
+    f.h3('Losung')
+    if sonntag:
+        f.h2(sonntag, class_='dbvSunday')
 f.p(los_t, class_='dbvText')
 f.p(los_v, class_='dbvVers')
 f.p(lehr_t, class_='dbvText')
 f.p(lehr_v, class_='dbvVers')
-with f.p(class_="dbvCopyright"):
-    f['©']
-    f.a("EBU", href="https://www.ebu.de/",
-        title="Evang. Brüder-Unität Bad Boll/Friedrich Reinhardt Verlag"),
-    f[',']
-    f.a("losungen.de", href="https://www.losungen.de/")
+if not news:
+    with f.p(class_="dbvCopyright"):
+        f['©']
+        f.a("EBU", href="https://www.ebu.de/",
+            title="Evang. Brüder-Unität Bad Boll/Friedrich Reinhardt Verlag")
+        f[',']
+        f.a("losungen.de", href="https://www.losungen.de/")
