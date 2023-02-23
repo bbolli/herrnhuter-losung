@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Die Losungen der Herrnhuter Brüdergemeine: {{ verse.date }}{% endblock %}
 {% block content %}
-<div id='losung_detail'>
+<div id=losung_detail>
 <h2>
 <a href='{{ verse.yesterday }}' title='vonangehender Tag'>«</a>
 {{ verse.weekday }}, {{ verse.date }}
@@ -10,14 +10,14 @@
 
 {% if verse.sunday_name %}<h3>{{ verse.sunday_name }}</h3>
 
-{% endif %}<p class='text'>{{ verse.verse_text }}</p>
-<p class='vers'>{{ verse.verse_verse }}</p>
+{% endif %}<p class=text>{{ verse.verse_text }}</p>
+<p class=vers>{{ verse.verse_verse }}</p>
 
-<p class='text'>{{ verse.teach_text }}</p>
-<p class='vers'>{{ verse.teach_verse }}</p>
+<p class=text>{{ verse.teach_text }}</p>
+<p class=vers>{{ verse.teach_verse }}</p>
 </div>
 
-<p class='copyright'>©
+<p class=copyright>©
 <a href="http://www.ebu.de/" title="Evang. Brüder-Unität Bad Boll/Friedrich Reinhardt Verlag">EBU</a>,
 <a href="http://www.losungen.de/">losungen.de</a>
 </p>
