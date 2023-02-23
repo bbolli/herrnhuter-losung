@@ -23,12 +23,12 @@ from xml.etree import ElementTree as ET
 from flask import (
     Flask,
     Markup,
-    abort,
     render_template,
 )
 
 app = Flask(__name__)
 
+date_url = '<int:y>-<int:m>-<int:d>'
 oneday = datetime.timedelta(days=1)
 speak_re = re.compile(r'/(.+?:)/')
 strong_re = re.compile(r'#(.+?)#')
@@ -59,23 +59,39 @@ class Verse:
             self.tomorrow = url_for_date(self.date + oneday)
 
 
+def render(data):
+    if 'error' in data:
+        return render_template('error.html', error=data), data['code']
+    return render_template('verse.html', verse=data)
+
+
 @app.route('/')
 def today():
-    return render(datetime.date.today())
+    return render(verse_today())
 
 
-@app.route('/<int:y>-<int:m>-<int:d>')
+@app.route(f'/{date_url}')
 def verse(y, m, d):
+    return render(verse_date(y, m, d))
+
+
+@app.route('/api/today')
+def verse_today():
+    return get_verse(datetime.date.today())
+
+
+@app.route(f'/api/{date_url}')
+def verse_date(y, m, d):
     try:
         date = datetime.date(y, m, d)
     except ValueError:
-        abort(404, "Ungültiges Datum.")
-    return render(date)
+        return {'error': f"Ungültiges Datum {y}-{m}-{d}", 'code': 400}
+    return get_verse(date)
 
 
 @app.errorhandler(404)
 def not_found(e):
-    return render_template('404.html', error=e), 404
+    return render({'error': "Diese Seite gibt es hier nicht", 'code': 404})
 
 
 cache = {}
@@ -92,17 +108,18 @@ def load_year(year):
         # to "losungen free YYYY.xml" in 2011
         root = ET.parse(glob.glob(f'lib/losung*{year}.xml')[0])
     except (IndexError, IOError):
-        abort(404, f"Losungen für {year} nicht vorhanden.")
+        # don't cache failure to allow for a newly appearing verse file
+        return None
     cache[year] = root
     return root
 
 
-def render(date):
-    root = load_year(date.year)
-    verse = root.findall(f'./Losungen[Datum="{date.isoformat()}T00:00:00"]')
-    if not verse:
-        abort(404, f"Vers für {date} nicht gefunden.")
-    return render_template('verse.html', verse=Verse(verse[0]))
+def get_verse(date):
+    if not (root := load_year(date.year)):
+        return {'error': f"Losungen für {date.year} nicht vorhanden", 'code': 404}
+    if not (verse := root.findall(f'./Losungen[Datum="{date.isoformat()}T00:00:00"]')):
+        return {'error': f"Vers für {date} nicht gefunden‽", 'code': 404}
+    return Verse(verse[0]).__dict__
 
 
 if __name__ == '__main__':
