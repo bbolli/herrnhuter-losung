@@ -115,8 +115,9 @@ def load_year(year):
 
 
 def get_verse(date):
-    if not (root := load_year(date.year)):
-        return {'error': f"Losungen für {date.year} nicht vorhanden", 'code': 404}
+    year = f'{date.year:04}'
+    if not (root := load_year(year)):
+        return {'error': f"Losungen für Jahr {year} nicht vorhanden", 'code': 404}
     if not (verse := root.findall(f'./Losungen[Datum="{date.isoformat()}T00:00:00"]')):
         return {'error': f"Vers für {date} nicht gefunden‽", 'code': 404}
     return Verse(verse[0]).__dict__
