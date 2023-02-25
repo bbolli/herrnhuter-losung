@@ -10,10 +10,10 @@
 
 {% if verse.sunday_name %}<h3>{{ verse.sunday_name }}</h3>
 
-{% endif %}<p class=text>{{ verse.verse_text }}</p>
+{% endif %}<p class=text>{{ verse.verse_text | htmlize }}</p>
 <p class=vers>{{ verse.verse_verse }}</p>
 
-<p class=text>{{ verse.teach_text }}</p>
+<p class=text>{{ verse.teach_text | htmlize }}</p>
 <p class=vers>{{ verse.teach_verse }}</p>
 </div>
 

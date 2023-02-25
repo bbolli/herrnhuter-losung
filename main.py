@@ -35,6 +35,7 @@ speak_re = re.compile(r'/(.+?:)/')
 strong_re = re.compile(r'#(.+?)#')
 
 
+@app.template_filter('htmlize')
 def htmlize(t):
     t = speak_re.sub(r'<em>\1</em>', str(escape(t)))
     t = strong_re.sub(r'<strong>\1</strong>', t)
@@ -50,9 +51,9 @@ class Verse:
         self.date = datetime.date.fromisoformat(node.findtext('Datum', '')[:10])
         self.weekday = node.findtext('Wtag')
         self.sunday_name = node.findtext('Sonntag')
-        self.verse_text = htmlize(node.findtext('Losungstext'))
+        self.verse_text = node.findtext('Losungstext')
         self.verse_verse = node.findtext('Losungsvers')
-        self.teach_text = htmlize(node.findtext('Lehrtext'))
+        self.teach_text = node.findtext('Lehrtext')
         self.teach_verse = node.findtext('Lehrtextvers')
 
         self.yesterday = url_for_date(self.date - oneday)
