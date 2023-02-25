@@ -25,6 +25,7 @@ from flask import (
     Flask,
     Markup,
     render_template,
+    url_for,
 )
 
 app = Flask(__name__)
@@ -43,7 +44,7 @@ def htmlize(t):
 
 
 def url_for_date(date):
-    return f'/{date.year}-{date.month:02}-{date.day:02}'
+    return url_for('today') + f'{date.year}-{date.month:02}-{date.day:02}'
 
 
 class Verse:
