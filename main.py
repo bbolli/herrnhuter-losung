@@ -21,6 +21,7 @@ import re
 from xml.etree import ElementTree as ET
 
 from flask import (
+    escape,
     Flask,
     Markup,
     render_template,
@@ -35,7 +36,7 @@ strong_re = re.compile(r'#(.+?)#')
 
 
 def htmlize(t):
-    t = speak_re.sub(r'<em>\1</em>', t)
+    t = speak_re.sub(r'<em>\1</em>', str(escape(t)))
     t = strong_re.sub(r'<strong>\1</strong>', t)
     return Markup(t)
 
