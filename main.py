@@ -82,6 +82,8 @@ def verse_today():
 
 @app.route(f'/api/{date_url}')
 def verse_date(y, m, d):
+    if 0 < y < 100:
+        y += 2000
     try:
         date = datetime.date(y, m, d)
     except ValueError:
