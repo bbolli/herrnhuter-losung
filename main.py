@@ -97,6 +97,11 @@ def not_found(e):
     return render({'error': "Diese Seite gibt es hier nicht", 'code': 404})
 
 
+@app.errorhandler(500)
+def internal_error(e):
+    return render({'error': e, 'code': 500})
+
+
 cache = {}
 
 
