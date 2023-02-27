@@ -45,21 +45,6 @@ def url_for_date(date):
     return url_for('today') + f'{date.year}-{date.month:02}-{date.day:02}'
 
 
-class Verse:
-    def __init__(self, node):
-        self.date = datetime.date.fromisoformat(node.findtext('Datum', '')[:10])
-        self.weekday = node.findtext('Wtag')
-        self.sunday_name = node.findtext('Sonntag')
-        self.verse_text = node.findtext('Losungstext')
-        self.verse_verse = node.findtext('Losungsvers')
-        self.teach_text = node.findtext('Lehrtext')
-        self.teach_verse = node.findtext('Lehrtextvers')
-
-        self.yesterday = url_for_date(self.date - oneday)
-        if self.date < datetime.date.today():
-            self.tomorrow = url_for_date(self.date + oneday)
-
-
 def render(data):
     if 'error' in data:
         return render_template('error.html', error=data), data['code']
@@ -126,9 +111,19 @@ def get_verse(date):
     year = f'{date.year:04}'
     if not (root := load_year(year)):
         return {'error': f"Losungen für Jahr {year} nicht vorhanden", 'code': 404}
-    if not (verse := root.findall(f'./Losungen[Datum="{date.isoformat()}T00:00:00"]')):
+    if not (node := root.find(f'./Losungen[Datum="{date.isoformat()}T00:00:00"]')):
         return {'error': f"Vers für {date} nicht gefunden‽", 'code': 404}
-    return Verse(verse[0]).__dict__
+    return {
+        'date': date.isoformat(),
+        'weekday': node.findtext('Wtag'),
+        'sunday_name': node.findtext('Sonntag'),
+        'verse_text': node.findtext('Losungstext'),
+        'verse_verse': node.findtext('Losungsvers'),
+        'teach_text': node.findtext('Lehrtext'),
+        'teach_verse': node.findtext('Lehrtextvers'),
+        'yesterday': url_for_date(date - oneday),
+        'tomorrow': url_for_date(date + oneday) if date < datetime.date.today() else None
+    }
 
 
 if __name__ == '__main__':
