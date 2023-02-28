@@ -63,7 +63,7 @@ def render(data: ApiResult) -> RenderResult:
         else:
             abort(500, f"Typ-Verwirrung in render()-Daten "
                        f"('code' sollte ein 'int' sein): {data!r}")
-    return render_template('verse.html', verse=data)
+    return render_template('verse.html', vers=data)
 
 
 @app.route('/')
@@ -132,17 +132,16 @@ def get_verse(date: datetime.date) -> ApiResult:
         return {'error': f"Losungen für Jahr {year} nicht vorhanden", 'code': 404}
     if not (node := root.find(f'./Losungen[Datum="{date.isoformat()}T00:00:00"]')):
         return {'error': f"Vers für {date} nicht gefunden‽", 'code': 404}
-    return {
-        'date': date.isoformat(),
-        'weekday': node.findtext('Wtag'),
-        'sunday_name': node.findtext('Sonntag'),
-        'verse_text': node.findtext('Losungstext'),
-        'verse_verse': node.findtext('Losungsvers'),
-        'teach_text': node.findtext('Lehrtext'),
-        'teach_verse': node.findtext('Lehrtextvers'),
-        'yesterday': url_for_date(date - oneday),
-        'tomorrow': url_for_date(date + oneday) if date < datetime.date.today() else None
+
+    result: ApiResult = {
+        'datum': date.isoformat(),
+        'gestern': url_for_date(date - oneday),
+        'morgen': url_for_date(date + oneday) if date < datetime.date.today() else None
     }
+    result.update((f.lower(), node.findtext(f)) for f in (
+        'Wtag', 'Sonntag', 'Losungstext', 'Losungsvers', 'Lehrtext', 'Lehrtextvers'
+    ))
+    return result
 
 
 if __name__ == '__main__':

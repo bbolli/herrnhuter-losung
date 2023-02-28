@@ -1,20 +1,20 @@
 {% extends "base.html" %}
-{% block title %}Die Losungen der Herrnhuter Brüdergemeine: {{ verse.date }}{% endblock %}
+{% block title %}Die Losungen der Herrnhuter Brüdergemeine: {{ vers.datum }}{% endblock %}
 {% block content %}
 <div id=losung_detail>
 <h2>
-<a href='{{ verse.yesterday }}' title='vonangehender Tag'>«</a>
-{{ verse.weekday }}, {{ verse.date }}
-{% if verse.tomorrow %}<a href='{{ verse.tomorrow }}' title='nächster Tag'>»</a>
+<a href='{{ vers.gestern }}' title='vonangehender Tag'>«</a>
+{{ vers.wtag }}, {{ vers.datum }}
+{% if vers.morgen %}<a href='{{ vers.morgen }}' title='nächster Tag'>»</a>
 {% endif %}</h2>
 
-{% if verse.sunday_name %}<h3>{{ verse.sunday_name }}</h3>
+{% if vers.sonntag %}<h3>{{ vers.sonntag }}</h3>
 
-{% endif %}<p class=text>{{ verse.verse_text | htmlize }}</p>
-<p class=vers>{{ verse.verse_verse }}</p>
+{% endif %}<p class=text>{{ vers.losungstext | htmlize }}</p>
+<p class=vers>{{ vers.losungsvers }}</p>
 
-<p class=text>{{ verse.teach_text | htmlize }}</p>
-<p class=vers>{{ verse.teach_verse }}</p>
+<p class=text>{{ vers.lehrtext | htmlize }}</p>
+<p class=vers>{{ vers.lehrtextvers }}</p>
 </div>
 
 <p class=copyright>©
