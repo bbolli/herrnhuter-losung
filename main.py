@@ -36,43 +36,53 @@ oneday = datetime.timedelta(days=1)
 speak_re = re.compile(r'/(.+?:)/')
 strong_re = re.compile(r'#(.+?)#')
 
+# type aliases
+RenderResult = str | tuple[str, int]
+ApiResult = dict[str, str | int | None]
+
 
 @app.template_filter('htmlize')
-def htmlize(t):
+def htmlize(t: str) -> Markup:
     t = speak_re.sub(r'<em>\1</em>', str(escape(t)))
     t = strong_re.sub(r'<strong>\1</strong>', t)
     return Markup(t)
 
 
-def url_for_date(date):
+def url_for_date(date: datetime.date) -> str:
     return url_for('today') + f'{date.year}-{date.month:02}-{date.day:02}'
 
 
-def render(data):
+def render(data: ApiResult) -> RenderResult:
     if 'error' in data:
-        # match fields with the werkzeug HTTPException class
-        data['description'] = data.pop('error')
-        return render_template('error.html', error=data), data['code']
+        # Satisfy mypy: `code` is always an int, but the type checker
+        # cannot know this. Add an explicit type check as hint.
+        if isinstance(code := data['code'], int):
+            # match fields with the werkzeug HTTPException class
+            data['description'] = data.pop('error')
+            return render_template("error.html", error=data), code
+        else:
+            abort(500, f"Typ-Verwirrung in render()-Daten "
+                       f"('code' sollte ein 'int' sein): {data!r}")
     return render_template('verse.html', verse=data)
 
 
 @app.route('/')
-def today():
+def today() -> RenderResult:
     return render(verse_today())
 
 
 @app.route(f'/{date_url}')
-def verse(y, m, d):
+def verse(y: int, m: int, d: int) -> RenderResult:
     return render(verse_date(y, m, d))
 
 
 @app.route('/api/today')
-def verse_today():
+def verse_today() -> ApiResult:
     return get_verse(datetime.date.today())
 
 
 @app.route(f'/api/{date_url}')
-def verse_date(y, m, d):
+def verse_date(y: int, m: int, d: int) -> ApiResult:
     if 0 < y < 100:
         y += 2000
     try:
@@ -82,11 +92,11 @@ def verse_date(y, m, d):
     return get_verse(date)
 
 
-def error_handler(e):
+def error_handler(e: Exception) -> tuple[str, int]:
     if isinstance(e, NotFound):
         e.description = "Diese Seite gibt es hier nicht"
     if isinstance(e, HTTPException):
-        return render_template("error.html", error=e), e.code
+        return render_template("error.html", error=e), e.code or 500
     raise e
 
 
@@ -96,10 +106,10 @@ app.register_error_handler(405, error_handler)
 app.register_error_handler(500, error_handler)
 
 
-cache = {}
+cache: dict[str, ET.ElementTree] = {}
 
 
-def load_year(year):
+def load_year(year: str) -> ET.ElementTree | None:
     global cache
     try:
         return cache[year]
@@ -116,7 +126,7 @@ def load_year(year):
     return root
 
 
-def get_verse(date):
+def get_verse(date: datetime.date) -> ApiResult:
     year = f'{date.year:04}'
     if not (root := load_year(year)):
         return {'error': f"Losungen für Jahr {year} nicht vorhanden", 'code': 404}
