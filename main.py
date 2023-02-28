@@ -19,12 +19,15 @@ import re
 from xml.etree import ElementTree as ET
 
 from flask import (
+    abort,
     escape,
     Flask,
     Markup,
     render_template,
     url_for,
 )
+from werkzeug.exceptions import HTTPException, NotFound
+
 
 app = Flask(__name__)
 
@@ -47,6 +50,8 @@ def url_for_date(date):
 
 def render(data):
     if 'error' in data:
+        # match fields with the werkzeug HTTPException class
+        data['description'] = data.pop('error')
         return render_template('error.html', error=data), data['code']
     return render_template('verse.html', verse=data)
 
@@ -77,14 +82,18 @@ def verse_date(y, m, d):
     return get_verse(date)
 
 
-@app.errorhandler(404)
-def not_found(e):
-    return render({'error': "Diese Seite gibt es hier nicht", 'code': 404})
+def error_handler(e):
+    if isinstance(e, NotFound):
+        e.description = "Diese Seite gibt es hier nicht"
+    if isinstance(e, HTTPException):
+        return render_template("error.html", error=e), e.code
+    raise e
 
 
-@app.errorhandler(500)
-def internal_error(e):
-    return render({'error': e, 'code': 500})
+app.register_error_handler(400, error_handler)
+app.register_error_handler(404, error_handler)
+app.register_error_handler(405, error_handler)
+app.register_error_handler(500, error_handler)
 
 
 cache = {}
