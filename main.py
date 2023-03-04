@@ -83,8 +83,8 @@ def verse_today() -> ApiResult:
 
 @app.route(f'/api/{date_url}')
 def verse_date(y: int, m: int, d: int) -> ApiResult:
-    if 0 < y < 100:
-        y += 2000
+    if 0 <= y < 100:
+        y += datetime.date.today().year // 100 * 100
     try:
         date = datetime.date(y, m, d)
     except ValueError:
