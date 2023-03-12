@@ -3,9 +3,9 @@
 {% block content %}
 <div id=losung_detail>
 <h2>
-<a href='{{ vers.gestern }}' title='vonangehender Tag'>«</a>
+<a rel=prev href='{{ vers.gestern }}' title='vonangehender Tag'>«</a>
 {{ vers.wtag }}, {{ vers.datum }}
-{% if vers.morgen %}<a href='{{ vers.morgen }}' title='nächster Tag'>»</a>
+{% if vers.morgen %}<a rel=next href='{{ vers.morgen }}' title='nächster Tag'>»</a>
 {% endif %}</h2>
 
 {% if vers.sonntag %}<h3>{{ vers.sonntag }}</h3>
