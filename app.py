@@ -37,7 +37,7 @@ strong_re = re.compile(r'#(.+?)#')
 
 # type aliases
 RenderResult = str | tuple[str, int]
-ApiResult = dict[str, str | int | None]
+ApiResult = dict[str, str | int | None | dict[str, str]]
 
 
 @app.template_filter('htmlize')
@@ -125,6 +125,10 @@ def load_year(year: str) -> ElementTree | None:
     return root
 
 
+def api_url(dt: date) -> str:
+    return url_for('verse_date', y=dt.year, m=dt.month, d=dt.day)
+
+
 def get_verse(dt: date) -> ApiResult:
     year = f'{dt.year:04}'
     if not (root := load_year(year)):
@@ -132,10 +136,17 @@ def get_verse(dt: date) -> ApiResult:
     if not (node := root.find(f'./Losungen[Datum="{dt.isoformat()}T00:00:00"]')):
         return {'error': f"Vers für {dt} nicht gefunden‽", 'code': 404}
 
+    prev = dt - oneday
+    next = dt + oneday
     result: ApiResult = {
         'datum': dt.isoformat(),
-        'gestern': url_for_date(dt - oneday),
-        'morgen': url_for_date(dt + oneday) if dt < date.today() else None
+        'gestern': url_for_date(prev),
+        'morgen': url_for_date(next) if dt < date.today() else None,
+        '_links': {
+            'self': api_url(dt),
+            'prev': api_url(prev),
+            'next': api_url(next)
+        }
     }
     result.update((f.lower(), node.findtext(f)) for f in (
         'Wtag', 'Sonntag', 'Losungstext', 'Losungsvers', 'Lehrtext', 'Lehrtextvers'
