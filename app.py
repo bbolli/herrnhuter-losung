@@ -138,7 +138,8 @@ def get_verse(dt: date) -> ApiResult:
 
     prev = dt - oneday
     next = dt + oneday
-    result: ApiResult = {
+    result: ApiResult = {n.tag.lower(): n.text for n in node.findall('*')}
+    result.update({
         'datum': dt.isoformat(),
         'gestern': url_for_date(prev),
         'morgen': url_for_date(next) if dt < date.today() else None,
@@ -147,10 +148,7 @@ def get_verse(dt: date) -> ApiResult:
             'prev': api_url(prev),
             'next': api_url(next)
         }
-    }
-    result.update((f.lower(), node.findtext(f)) for f in (
-        'Wtag', 'Sonntag', 'Losungstext', 'Losungsvers', 'Lehrtext', 'Lehrtextvers'
-    ))
+    })
     return result
 
 
