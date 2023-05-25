@@ -20,12 +20,11 @@ from xml.etree import ElementTree as ET
 
 from flask import (
     abort,
-    escape,
     Flask,
-    Markup,
     render_template,
     url_for,
 )
+from markupsafe import escape, Markup
 from werkzeug.exceptions import HTTPException, NotFound
 
 
