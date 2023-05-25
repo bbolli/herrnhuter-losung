@@ -13,10 +13,10 @@
 # limitations under the License.
 #
 
-import datetime
-import glob
+from datetime import date, timedelta
+from glob import glob
 import re
-from xml.etree import ElementTree as ET
+from xml.etree.ElementTree import parse, ElementTree
 
 from flask import (
     abort,
@@ -31,7 +31,7 @@ from werkzeug.exceptions import HTTPException, NotFound
 app = Flask(__name__)
 
 date_url = '<int:y>-<int:m>-<int:d>'
-oneday = datetime.timedelta(days=1)
+oneday = timedelta(days=1)
 speak_re = re.compile(r'/(.+?:)/')
 strong_re = re.compile(r'#(.+?)#')
 
@@ -47,8 +47,8 @@ def htmlize(t: str) -> Markup:
     return Markup(t)
 
 
-def url_for_date(date: datetime.date) -> str:
-    return url_for('today') + f'{date.year}-{date.month:02}-{date.day:02}'
+def url_for_date(dt: date) -> str:
+    return url_for('today') + f'{dt.year}-{dt.month:02}-{dt.day:02}'
 
 
 def render(data: ApiResult) -> RenderResult:
@@ -77,18 +77,18 @@ def verse(y: int, m: int, d: int) -> RenderResult:
 
 @app.route('/api/today')
 def verse_today() -> ApiResult:
-    return get_verse(datetime.date.today())
+    return get_verse(date.today())
 
 
 @app.route(f'/api/{date_url}')
 def verse_date(y: int, m: int, d: int) -> ApiResult:
     if 0 <= y < 100:
-        y += datetime.date.today().year // 100 * 100
+        y += date.today().year // 100 * 100
     try:
-        date = datetime.date(y, m, d)
+        dt = date(y, m, d)
     except ValueError:
         return {'error': f"Ungültiges Datum {y}-{m}-{d}", 'code': 400}
-    return get_verse(date)
+    return get_verse(dt)
 
 
 def error_handler(e: Exception) -> tuple[str, int]:
@@ -105,10 +105,10 @@ app.register_error_handler(405, error_handler)
 app.register_error_handler(500, error_handler)
 
 
-cache: dict[str, ET.ElementTree] = {}
+cache: dict[str, ElementTree] = {}
 
 
-def load_year(year: str) -> ET.ElementTree | None:
+def load_year(year: str) -> ElementTree | None:
     global cache
     try:
         return cache[year]
@@ -117,7 +117,7 @@ def load_year(year: str) -> ET.ElementTree | None:
     try:
         # use a glob because the file name changed from "losung_free_YYYY.xml"
         # to "losungen free YYYY.xml" in 2011
-        root = ET.parse(glob.glob(f'lib/losung*{year}.xml')[0])
+        root = parse(glob(f'lib/losung*{year}.xml')[0])
     except (IndexError, IOError):
         # don't cache failure to allow for a newly appearing verse file
         return None
@@ -125,17 +125,17 @@ def load_year(year: str) -> ET.ElementTree | None:
     return root
 
 
-def get_verse(date: datetime.date) -> ApiResult:
-    year = f'{date.year:04}'
+def get_verse(dt: date) -> ApiResult:
+    year = f'{dt.year:04}'
     if not (root := load_year(year)):
         return {'error': f"Losungen für Jahr {year} nicht vorhanden", 'code': 404}
-    if not (node := root.find(f'./Losungen[Datum="{date.isoformat()}T00:00:00"]')):
-        return {'error': f"Vers für {date} nicht gefunden‽", 'code': 404}
+    if not (node := root.find(f'./Losungen[Datum="{dt.isoformat()}T00:00:00"]')):
+        return {'error': f"Vers für {dt} nicht gefunden‽", 'code': 404}
 
     result: ApiResult = {
-        'datum': date.isoformat(),
-        'gestern': url_for_date(date - oneday),
-        'morgen': url_for_date(date + oneday) if date < datetime.date.today() else None
+        'datum': dt.isoformat(),
+        'gestern': url_for_date(dt - oneday),
+        'morgen': url_for_date(dt + oneday) if dt < date.today() else None
     }
     result.update((f.lower(), node.findtext(f)) for f in (
         'Wtag', 'Sonntag', 'Losungstext', 'Losungsvers', 'Lehrtext', 'Lehrtextvers'
