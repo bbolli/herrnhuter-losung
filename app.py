@@ -19,7 +19,6 @@ import re
 from xml.etree.ElementTree import parse, ElementTree
 
 from flask import (
-    abort,
     Flask,
     render_template,
     url_for,
@@ -59,14 +58,11 @@ def error(err: str, code: int) -> ApiResult:
 def render(data: ApiResult) -> RenderResult:
     if 'error' in data:
         # Satisfy mypy: `code` is always an int, but the type checker
-        # cannot know this. Add an explicit type check as hint.
-        if isinstance(code := data['code'], int):
-            # match fields with the werkzeug HTTPException class
-            data['description'] = data.pop('error')
-            return render_template("error.html", error=data), code
-        else:
-            abort(500, f"Typ-Verwirrung in render()-Daten "
-                       f"('code' sollte ein 'int' sein): {data!r}")
+        # cannot know this. Add an explicit type assertion as hint.
+        assert isinstance(data['code'], int)
+        # match fields with the werkzeug HTTPException class
+        data['description'] = data.pop('error')
+        return render_template("error.html", error=data), data['code']
     return render_template('verse.html', vers=data)
 
 
