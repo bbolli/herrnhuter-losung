@@ -51,6 +51,11 @@ def url_for_date(dt: date) -> str:
     return url_for('today') + f'{dt.year}-{dt.month:02}-{dt.day:02}'
 
 
+def error(err: str, code: int) -> ApiResult:
+    """Return an ApiResult describing an error condition and code"""
+    return {'error': err, 'code': code}
+
+
 def render(data: ApiResult) -> RenderResult:
     if 'error' in data:
         # Satisfy mypy: `code` is always an int, but the type checker
@@ -87,7 +92,7 @@ def verse_date(y: int, m: int, d: int) -> ApiResult:
     try:
         dt = date(y, m, d)
     except ValueError:
-        return {'error': f"Ungültiges Datum {y}-{m}-{d}", 'code': 400}
+        return error(f"Ungültiges Datum {y}-{m}-{d}", 400)
     return get_verse(dt)
 
 
@@ -132,9 +137,9 @@ def api_url(dt: date) -> str:
 def get_verse(dt: date) -> ApiResult:
     year = f'{dt.year:04}'
     if not (root := load_year(year)):
-        return {'error': f"Losungen für Jahr {year} nicht vorhanden", 'code': 404}
+        return error(f"Losungen für Jahr {year} nicht vorhanden", 404)
     if not (node := root.find(f'./Losungen[Datum="{dt.isoformat()}T00:00:00"]')):
-        return {'error': f"Vers für {dt} nicht gefunden‽", 'code': 404}
+        return error(f"Vers für {dt} nicht gefunden‽", 404)
 
     prev = dt - oneday
     next = dt + oneday
