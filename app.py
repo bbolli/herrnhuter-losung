@@ -92,18 +92,16 @@ def verse_date(y: int, m: int, d: int) -> ApiResult:
     return get_verse(dt)
 
 
+@app.errorhandler(400)
+@app.errorhandler(404)
+@app.errorhandler(405)
+@app.errorhandler(500)
 def error_handler(e: Exception) -> tuple[str, int]:
     if isinstance(e, NotFound):
         e.description = "Diese Seite gibt es hier nicht"
     if isinstance(e, HTTPException):
         return render_template("error.html", error=e), e.code or 500
     raise e
-
-
-app.register_error_handler(400, error_handler)
-app.register_error_handler(404, error_handler)
-app.register_error_handler(405, error_handler)
-app.register_error_handler(500, error_handler)
 
 
 cache: dict[str, ElementTree] = {}
