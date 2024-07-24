@@ -8,7 +8,6 @@ import sys
 import time
 import xmlbuilder
 from xml.etree import cElementTree as ElementTree
-from xml.sax.saxutils import escape
 
 news = len(sys.argv) > 1 and sys.argv[1] == '--news'
 if news:
@@ -17,15 +16,13 @@ today = time.strftime('%Y-%m-%d') if len(sys.argv) == 1 else sys.argv[1]
 speak_re = re.compile(r'/(.+?:)/')
 emph_re = re.compile(r'#(.+?)#')
 
-f = xmlbuilder.Builder(version=None, stream=sys.stdout)
+f = xmlbuilder.HTMLBuilder(encoding='', stream=sys.stdout)
 
 
 def textvers(t):
-    return xmlbuilder.Safe(escape(t)).apply(
-        lambda t: speak_re.sub(r'<em>\1</em>', t)
-    ).apply(
-        lambda t: emph_re.sub(r'<strong>\1</strong>', t)
-    )
+    t = speak_re.sub(r'<em>\1</em>', xmlbuilder.escape(t))
+    t = emph_re.sub(r'<strong>\1</strong>', t)
+    return xmlbuilder.Safe(t)
 
 
 fn = glob.glob('/home/bb/lib/los*%s*.xml' % today[:4])
