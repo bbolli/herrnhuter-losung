@@ -6,8 +6,9 @@ import glob
 import re
 import sys
 import time
-import xmlbuilder
 from xml.etree import cElementTree as ElementTree
+
+from xmlbuilder import HTMLBuilder, Safe, escape
 
 news = len(sys.argv) > 1 and sys.argv[1] == '--news'
 if news:
@@ -16,13 +17,11 @@ today = time.strftime('%Y-%m-%d') if len(sys.argv) == 1 else sys.argv[1]
 speak_re = re.compile(r'/(.+?:)/')
 emph_re = re.compile(r'#(.+?)#')
 
-f = xmlbuilder.HTMLBuilder(encoding='', stream=sys.stdout)
-
 
 def textvers(t):
-    t = speak_re.sub(r'<em>\1</em>', xmlbuilder.escape(t))
+    t = speak_re.sub(r'<em>\1</em>', escape(t))
     t = emph_re.sub(r'<strong>\1</strong>', t)
-    return xmlbuilder.Safe(t)
+    return Safe(t)
 
 
 fn = glob.glob('/home/bb/lib/los*%s*.xml' % today[:4])
@@ -39,6 +38,7 @@ for d in root:
 else:
     sys.exit(1)
 
+f = HTMLBuilder(encoding='', stream=sys.stdout)
 if news:
     print('Losung\nmeta-source: losung\n')
     if sonntag:
