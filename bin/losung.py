@@ -40,21 +40,15 @@ else:
 
 f = HTMLBuilder(encoding='', stream=sys.stdout)
 if news:
-    print('Losung\nmeta-source: losung\n')
-    if sonntag:
-        f.h4(sonntag, class_='dbvSunday')
+    f[Safe('Losung\nmeta-source: losung\n')]
 else:
     f.h3('Losung')
-    if sonntag:
-        f.h2(sonntag, class_='dbvSunday')
-f.p(los_t, class_='dbvText')
-f.p(los_v, class_='dbvVers')
-f.p(lehr_t, class_='dbvText')
-f.p(lehr_v, class_='dbvVers')
+if sonntag:
+    f.h4(sonntag, class_='dbvSunday')
+f.p(los_t, class_='dbvText').p(los_v, class_='dbvVers')
+f.p(lehr_t, class_='dbvText').p(lehr_v, class_='dbvVers')
 if not news:
     with f.p(class_="dbvCopyright"):
-        f['©']
-        f.a("EBU", href="https://www.ebu.de/",
+        f.a("EBU", _pre="© ", _post=",", href="https://www.ebu.de/",
             title="Evang. Brüder-Unität Bad Boll/Friedrich Reinhardt Verlag")
-        f[',']
         f.a("losungen.de", href="https://www.losungen.de/")
