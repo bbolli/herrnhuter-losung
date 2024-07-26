@@ -8,7 +8,7 @@ import sys
 import time
 from xml.etree import cElementTree as ElementTree
 
-from xmlbuilder import HTMLBuilder, Safe, escape
+from xmlbuilder import HTMLBuilder, Safe
 
 news = len(sys.argv) > 1 and sys.argv[1] == '--news'
 if news:
@@ -18,9 +18,10 @@ speak_re = re.compile(r'/(.+?:)/')
 emph_re = re.compile(r'#(.+?)#')
 
 
-def textvers(t):
-    t = speak_re.sub(r'<em>\1</em>', escape(t))
+def textvers(t: str) -> Safe:
+    t = speak_re.sub(r'<em>\1</em>', Safe.text(t))
     t = emph_re.sub(r'<strong>\1</strong>', t)
+    # t is a str now, it needs to be made Safe again
     return Safe(t)
 
 
@@ -30,9 +31,9 @@ for d in root:
     date = d.findtext('Datum')
     if date is not None and date.startswith(today):
         sonntag = d.findtext('Sonntag')
-        los_t = textvers(d.findtext('Losungstext'))
+        los_t = textvers(d.findtext('Losungstext') or 'n/a')
         los_v = d.findtext('Losungsvers')
-        lehr_t = textvers(d.findtext('Lehrtext'))
+        lehr_t = textvers(d.findtext('Lehrtext') or 'n/a')
         lehr_v = d.findtext('Lehrtextvers')
         break
 else:
