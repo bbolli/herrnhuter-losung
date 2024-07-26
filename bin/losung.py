@@ -2,6 +2,7 @@
 
 # usage: losung.py [--news] [yyyy-mm-dd]
 
+import functools
 import glob
 import re
 import sys
@@ -14,13 +15,14 @@ news = len(sys.argv) > 1 and sys.argv[1] == '--news'
 if news:
     del sys.argv[1]
 today = time.strftime('%Y-%m-%d') if len(sys.argv) == 1 else sys.argv[1]
-speak_re = re.compile(r'/(.+?:)/')
-emph_re = re.compile(r'#(.+?)#')
+
+speak = functools.partial(re.compile(r'/(.+?:)/').sub, r'<em>\1</em>')
+emph = functools.partial(re.compile(r'#(.+?)#').sub, r'<strong>\1</strong>')
 
 
 def textvers(t: str) -> Safe:
-    t = speak_re.sub(r'<em>\1</em>', Safe.text(t))
-    t = emph_re.sub(r'<strong>\1</strong>', t)
+    t = speak(Safe.text(t))
+    t = emph(t)
     # t is a str now, it needs to be made Safe again
     return Safe(t)
 
