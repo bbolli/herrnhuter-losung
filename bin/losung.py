@@ -39,6 +39,7 @@ for d in root:
         lehr_v = d.findtext('Lehrtextvers')
         break
 else:
+    print("invalid date", file=sys.stderr)
     sys.exit(1)
 
 f = HTMLBuilder(encoding='', stream=sys.stdout)
