@@ -4,12 +4,15 @@
 
 import functools
 import glob
+import os
 import re
 import sys
 import time
 from xml.etree import cElementTree as ElementTree
 
 from xmlbuilder import HTMLBuilder, Safe
+
+verse_root = os.environ.get('VERSE_ROOT', '/home/bb/lib')
 
 news = len(sys.argv) > 1 and sys.argv[1] == '--news'
 if news:
@@ -27,7 +30,7 @@ def textvers(t: str) -> Safe:
     return Safe(t)
 
 
-fn = glob.glob('/home/bb/lib/los*%s*.xml' % today[:4])
+fn = glob.glob(f'{verse_root}/losung*{today[:4]}*.xml')
 root = ElementTree.parse(fn[0]).getroot()
 for d in root:
     date = d.findtext('Datum')
