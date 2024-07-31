@@ -133,7 +133,7 @@ def get_verse(dt: date) -> ApiResult:
     year = f'{dt.year:04}'
     if not (root := load_year(year)):
         return error(f"Losungen für Jahr {year} nicht vorhanden", 404)
-    if not (node := root.find(f'./Losungen[Datum="{dt.isoformat()}T00:00:00"]')):
+    if (node := root.find(f'./Losungen[Datum="{dt.isoformat()}T00:00:00"]')) is None:
         return error(f"Vers für {dt} nicht gefunden‽", 404)
 
     prev = dt - oneday
