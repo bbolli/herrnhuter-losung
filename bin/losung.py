@@ -14,8 +14,8 @@ from xmlbuilder import HTMLBuilder, Safe
 
 verse_root = os.environ.get('VERSE_ROOT', '/home/bb/lib')
 
-speak = functools.partial(re.compile(r'/(.+?:)/').sub, r'<em>\1</em>')
-emph = functools.partial(re.compile(r'#(.+?)#').sub, r'<strong>\1</strong>')
+speak = functools.partial(re.sub, r'/(.+?:)/', r'<em>\1</em>')
+emph = functools.partial(re.sub, r'#(.+?)#', r'<strong>\1</strong>')
 
 
 def textvers(t: str) -> Safe:

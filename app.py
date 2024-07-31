@@ -14,6 +14,7 @@
 #
 
 from datetime import date, timedelta
+from functools import partial
 from glob import glob
 import re
 from xml.etree.ElementTree import parse, ElementTree
@@ -31,8 +32,8 @@ app = Flask(__name__)
 
 date_url = '<int:y>-<int:m>-<int:d>'
 oneday = timedelta(days=1)
-speak_re = re.compile(r'/(.+?:)/')
-strong_re = re.compile(r'#(.+?)#')
+speak = partial(re.sub, r'/(.+?:)/', r'<em>\1</em>')
+emph = partial(re.sub, r'#(.+?)#', r'<strong>\1</strong>')
 
 # type aliases
 RenderResult = str | tuple[str, int]
@@ -41,8 +42,8 @@ ApiResult = dict[str, str | int | None | dict[str, str]]
 
 @app.template_filter('htmlize')
 def htmlize(t: str) -> Markup:
-    t = speak_re.sub(r'<em>\1</em>', str(escape(t)))
-    t = strong_re.sub(r'<strong>\1</strong>', t)
+    t = speak(str(escape(t)))
+    t = emph(t)
     return Markup(t)
 
 
