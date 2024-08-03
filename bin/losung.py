@@ -28,18 +28,14 @@ def textvers(t: str) -> Safe:
 def vers(when: str, news: bool) -> HTMLBuilder:
     fn = glob.glob(f'{verse_root}/losung*{when[:4]}*.xml')
     root = ElementTree.parse(fn[0]).getroot()
-    for d in root:
-        date = d.findtext('Datum')
-        if date is not None and date.startswith(when):
-            sonntag = d.findtext('Sonntag')
-            los_t = textvers(d.findtext('Losungstext') or 'n/a')
-            los_v = d.findtext('Losungsvers')
-            lehr_t = textvers(d.findtext('Lehrtext') or 'n/a')
-            lehr_v = d.findtext('Lehrtextvers')
-            break
-    else:
+    if (node := root.find(f'./Losungen[Datum="{when}T00:00:00"]')) is None:
         print("invalid date", file=sys.stderr)
         sys.exit(1)
+    sonntag = node.findtext('Sonntag')
+    los_t = textvers(node.findtext('Losungstext') or 'n/a')
+    los_v = node.findtext('Losungsvers')
+    lehr_t = textvers(node.findtext('Lehrtext') or 'n/a')
+    lehr_v = node.findtext('Lehrtextvers')
 
     f = HTMLBuilder(encoding='')
     if news:
