@@ -36,6 +36,7 @@ date_url = '<int:y>-<int:m>-<int:d>'
 oneday = timedelta(days=1)
 speak = partial(re.sub, r'/(.+?:)/', r'<em>\1</em>')
 emph = partial(re.sub, r'#(.+?)#', r'<strong>\1</strong>')
+cache: dict[str, ElementTree] = {}
 
 # type aliases
 RenderResult = str | tuple[str, int]
@@ -109,6 +110,16 @@ def verse_date_raw(y: int, m: int, d: int) -> ApiResult:
     return verse_for(y, m, d, True)
 
 
+@app.route('/health')
+def health() -> ApiResult:
+    return {
+        'state': 'OK',
+        'verse_root': verse_root,
+        'years_available': sorted(glob(f'{verse_root}/losung*.xml')),
+        'years_cached': list(cache.keys()),
+    }
+
+
 @app.errorhandler(400)
 @app.errorhandler(404)
 @app.errorhandler(405)
@@ -119,9 +130,6 @@ def error_handler(e: Exception) -> tuple[str, int]:
     if isinstance(e, HTTPException):
         return render_template('error.html', error=e), e.code or 500
     raise e
-
-
-cache: dict[str, ElementTree] = {}
 
 
 def load_year(year: str) -> ElementTree | None:
