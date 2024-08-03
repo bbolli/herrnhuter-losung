@@ -25,12 +25,11 @@ def textvers(t: str) -> Safe:
     return Safe(t)
 
 
-def vers(when: str, news: bool) -> HTMLBuilder:
+def vers(when: str, news: bool) -> HTMLBuilder | None:
     fn = glob.glob(f'{verse_root}/losung*{when[:4]}*.xml')
     root = ElementTree.parse(fn[0]).getroot()
     if (node := root.find(f'./Losungen[Datum="{when}T00:00:00"]')) is None:
-        print("invalid date", file=sys.stderr)
-        sys.exit(1)
+        return None
     sonntag = node.findtext('Sonntag')
     los_t = textvers(node.findtext('Losungstext') or 'n/a')
     los_v = node.findtext('Losungsvers')
@@ -59,4 +58,8 @@ if __name__ == '__main__':
     if news:
         del sys.argv[1]
     today = time.strftime('%Y-%m-%d') if len(sys.argv) == 1 else sys.argv[1]
-    print(vers(today, news), end='')
+    if v := vers(today, news):
+        print(v, end='')
+    else:
+        print(f"Vers für '{today}' nicht gefunden", file=sys.stderr)
+        sys.exit(1)
