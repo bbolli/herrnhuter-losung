@@ -29,7 +29,9 @@ from werkzeug.exceptions import HTTPException, NotFound
 
 
 app = Flask(__name__)
+app.config.from_prefixed_env()
 
+verse_root = app.config.get('VERSE_ROOT', 'lib')
 date_url = '<int:y>-<int:m>-<int:d>'
 oneday = timedelta(days=1)
 speak = partial(re.sub, r'/(.+?:)/', r'<em>\1</em>')
@@ -117,7 +119,7 @@ def load_year(year: str) -> ElementTree | None:
     try:
         # use a glob because the file name changed from "losung_free_YYYY.xml"
         # to "losungen free YYYY.xml" in 2011
-        root = parse(glob(f'lib/losung*{year}.xml')[0])
+        root = parse(glob(f'{verse_root}/losung*{year}.xml')[0])
     except (IndexError, IOError):
         # don't cache failure to allow for a newly appearing verse file
         return None
