@@ -26,7 +26,8 @@ def textvers(t: str) -> Safe:
 
 
 def vers(when: str, news: bool) -> HTMLBuilder | None:
-    fn = glob.glob(f'{verse_root}/losung*{when[:4]}*.xml')
+    if not (fn := glob.glob(f'{verse_root}/losung*{when[:4]}*.xml')):
+        return None
     root = ElementTree.parse(fn[0]).getroot()
     if (node := root.find(f'./Losungen[Datum="{when}T00:00:00"]')) is None:
         return None
