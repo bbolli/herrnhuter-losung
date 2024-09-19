@@ -65,7 +65,7 @@ def render(data: ApiResult) -> RenderResult:
         assert isinstance(data['code'], int)
         # match fields with the werkzeug HTTPException class
         data['description'] = data.pop('error')
-        return render_template("error.html", error=data), data['code']
+        return render_template('error.html', error=data), data['code']
     return render_template('verse.html', vers=data)
 
 
@@ -103,7 +103,7 @@ def error_handler(e: Exception) -> tuple[str, int]:
     if isinstance(e, NotFound):
         e.description = "Diese Seite gibt es hier nicht"
     if isinstance(e, HTTPException):
-        return render_template("error.html", error=e), e.code or 500
+        return render_template('error.html', error=e), e.code or 500
     raise e
 
 
