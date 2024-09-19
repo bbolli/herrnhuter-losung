@@ -81,18 +81,32 @@ def verse(y: int, m: int, d: int) -> RenderResult:
 
 @app.route('/api/today')
 def verse_today() -> ApiResult:
-    return get_verse(date.today())
+    return get_verse(date.today(), False)
 
 
-@app.route(f'/api/{date_url}')
-def verse_date(y: int, m: int, d: int) -> ApiResult:
+@app.route('/api/raw/today')
+def verse_today_raw() -> ApiResult:
+    return get_verse(date.today(), True)
+
+
+def verse_for(y: int, m: int, d: int, raw: bool) -> date:
     if 0 <= y < 100:
         y += date.today().year // 100 * 100
     try:
         dt = date(y, m, d)
     except ValueError:
         return error(f"Ungültiges Datum {y}-{m}-{d}", 400)
-    return get_verse(dt)
+    return get_verse(dt, raw)
+
+
+@app.route(f'/api/{date_url}')
+def verse_date(y: int, m: int, d: int) -> ApiResult:
+    return verse_for(y, m, d, False)
+
+
+@app.route(f'/api/raw/{date_url}')
+def verse_date_raw(y: int, m: int, d: int) -> ApiResult:
+    return verse_for(y, m, d, True)
 
 
 @app.errorhandler(400)
@@ -127,13 +141,14 @@ def load_year(year: str) -> ElementTree | None:
     return root
 
 
-def api_url(dt: date) -> str:
-    return url_for('verse_date', y=dt.year, m=dt.month, d=dt.day)
+def api_url(dt: date, raw: bool) -> str:
+    return url_for('verse_date_raw' if raw else 'verse_date',
+                   y=dt.year, m=dt.month, d=dt.day)
 
 
-def get_verse(dt: date) -> ApiResult:
+def get_verse(dt: date, raw: bool) -> ApiResult:
     year = f'{dt.year:04}'
-    if not (root := load_year(year)):
+    if (root := load_year(year)) is None:
         return error(f"Losungen für Jahr {year} nicht vorhanden", 404)
     if (node := root.find(f'./Losungen[Datum="{dt.isoformat()}T00:00:00"]')) is None:
         return error(f"Vers für {dt} nicht gefunden‽", 404)
@@ -146,11 +161,14 @@ def get_verse(dt: date) -> ApiResult:
         'gestern': url_for_date(prev),
         'morgen': url_for_date(next) if dt < date.today() else None,
         '_links': {
-            'self': api_url(dt),
-            'prev': api_url(prev),
-            'next': api_url(next)
+            'self': api_url(dt, raw),
+            'prev': api_url(prev, raw),
+            'next': api_url(next, raw)
         }
     })
+    if not raw:
+        result['lehrtext'] = htmlize(result['lehrtext'])
+        result['losungstext'] = htmlize(result['losungstext'])
     return result
 
 

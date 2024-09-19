@@ -13,6 +13,10 @@ This is a homage to a homepage I had once written for
 
 #### JSON
 
-`/api/today` returns a JSON object of today’s verse.
+`/api/today` returns a HTML-ized JSON object of today’s verse.
 
-`/api/YYYY-MM-DD` returns a JSON object of the date’s verse.
+`/api/YYYY-MM-DD` returns a HTML-ized JSON object of the date’s verse.
+
+`/api/raw/today` returns a raw JSON object of today’s verse.
+
+`/api/raw/YYYY-MM-DD` returns a raw JSON object of the date’s verse.
