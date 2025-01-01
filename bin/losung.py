@@ -29,8 +29,9 @@ def vers(when: str, news: bool) -> HTMLBuilder | None:
     if not (fn := glob.glob(f'{verse_root}/losung*{when[:4]}*.xml')):
         return None
     root = ElementTree.parse(fn[0]).getroot()
-    if (node := root.find(f'./Losungen[Datum="{when}T00:00:00"]')) is None:
-        return None
+    if (node := root.find(f'Losungen[Datum="{when}T00:00:00.000"]')) is None:
+        if (node := root.find(f'Losungen[Datum="{when}T00:00:00"]')) is None:
+            return None
     sonntag = node.findtext('Sonntag')
     los_t = textvers(node.findtext('Losungstext') or 'n/a')
     los_v = node.findtext('Losungsvers')
