@@ -89,7 +89,7 @@ def verse_today_raw() -> ApiResult:
     return get_verse(date.today(), True)
 
 
-def verse_for(y: int, m: int, d: int, raw: bool) -> date:
+def verse_for(y: int, m: int, d: int, raw: bool) -> ApiResult:
     if 0 <= y < 100:
         y += date.today().year // 100 * 100
     try:
@@ -169,7 +169,9 @@ def get_verse(dt: date, raw: bool) -> ApiResult:
         }
     })
     if not raw:
+        assert isinstance(result['lehrtext'], str)
         result['lehrtext'] = htmlize(result['lehrtext'])
+        assert isinstance(result['losungstext'], str)
         result['losungstext'] = htmlize(result['losungstext'])
     return result
 
