@@ -24,6 +24,7 @@ from flask import (
     render_template,
     url_for,
 )
+from flask.typing import ResponseReturnValue as RenderResult
 from markupsafe import escape, Markup
 from werkzeug.exceptions import HTTPException, NotFound
 
@@ -37,8 +38,7 @@ oneday = timedelta(days=1)
 speak = partial(re.sub, r'/(.+?:)/', r'<em>\1</em>')
 emph = partial(re.sub, r'#(.+?)#', r'<strong>\1</strong>')
 
-# type aliases
-RenderResult = str | tuple[str, int]
+# type alias
 ApiResult = dict[str, str | int | None | dict[str, str]]
 
 
